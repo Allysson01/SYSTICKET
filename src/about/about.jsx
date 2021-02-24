@@ -8,7 +8,7 @@ export default (props) => {
 
   const { token } = useContext(StoreContext);
  return token? (<div className="container">
-    {/* <Menu></Menu>  */}
+    
     <PageHeader name='Sistema' isHidden="false" icon="fa fa-laptop" isColor="#1C86EE"></PageHeader>
     <h2>Finalidade</h2>
     <p className="inpLabel">

@@ -4,13 +4,13 @@ import FadeIn from "react-fade-in";
 import Grid from "../template/grid";
 import Img from "../template/images";
 import Helmet from "react-helmet";
-import "../assets/css/custom.css";
 import StoreContext from "../store/Context";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
+import "../assets/css/custom.css";
 
-const URL = "https://localhost:44318/api/authen/login";
+const URL = "http://localhost:8082/api/authen/login";
 
 function initialState() {
   return { email: "", password: "" };
@@ -47,12 +47,13 @@ export default () => {
     const params = { email, password };
 
     await axios
-      .post(URL, params)
+      .post(URL, params, { withCredentials: true })
       .then((resp) => {
+        console.log(resp);
         data = resp.data;
       })
       .catch(function(err) {
-        console.log(err);
+        
         if (err.toString() === "Error: Network Error") {
           return toast.error(
             "Erro ao invocar API! Por favor informe a TI para solucionar o problema."
@@ -80,7 +81,7 @@ export default () => {
       setId("id", parseInt(id));
       setToken("token", token);
       setName("name", nome);
-      setManager("isManager", isManager);      
+      setManager("isManager", isManager);
       return history.replace("/todos");
     }
     setError(error);
@@ -91,10 +92,10 @@ export default () => {
       onSubmitt(e);
     }
   };
-
   const lbStyle = {
     marginTop: "10px",
   };
+
   const logo = require("../template/imagens/tg.png");
   return (
     <FadeIn delay={100} transitionDuration={700}>

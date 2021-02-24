@@ -7,23 +7,33 @@ import StoreContext from "../store/Context";
 import Login from "../login/login";
 import axios from "axios";
 import ModalShow from "../modals/modalDescription";
+import lstFilter from "../arquivosJS/lstPage";
 
 const URL = "https://localhost:44318/api/tickets/ticketget";
-
-let search = "";
 
 let pagina = 0;
 let numPagina = 0;
 
 function buttonNext() {
+  const btnBack = document.getElementById("btnBack");
+  btnBack.removeAttribute("Disabled");
   if (numPagina - 1 > pagina) {
     pagina++;
+  } else {
+    const btn = document.getElementById("btnNext");
+    btn.setAttribute("Disabled", "true");
   }
+  return pagina;
 }
 
 function buttonBack() {
   if (pagina > 0) {
     pagina--;
+    const btn = document.getElementById("btnNext");
+    btn.removeAttribute("Disabled");
+  } else {
+    const btn = document.getElementById("btnBack");
+    btn.setAttribute("Disabled", "true");
   }
 }
 
@@ -76,9 +86,8 @@ export default (props) => {
   useEffect(() => {
     async function refresh() {
       axios
-        .post(URL, { Id: id })
+        .post(URL, { PersonId: id, Page: pagina, Search: "" })
         .then((resp) => {
-          console.log();
           dataState({ Obj: resp.data });
         })
         .catch({
@@ -91,133 +100,58 @@ export default (props) => {
   }, [id]);
 
   const renderRows = () => {
-    const tamanhoPagina = 6;
-    let ObjData = Object.entries(data.Obj);
-    let list = [];
-
-    if (search === "") {
-      for (
-        var i = pagina * tamanhoPagina;
-        i < ObjData.length && i < (pagina + 1) * tamanhoPagina;
-        i++
-      ) {
-        list.push(ObjData[i][1]);
-      }
-      numPagina = Math.ceil(data.Obj.length / tamanhoPagina);
-    } else {
-      let hasRow = false;
-      ObjData.map(function(item) {
-        Object.entries(item[1]).map(function(filter) {
-          if (isNaN(search)) {
-            if (
-              filter[0] !== "id" &&
-              filter[0] !== "atendido" &&
-              filter[0] !== "descricao" &&
-              filter[0] !== "personId" &&
-              filter[0] !== "tela" &&
-              filter[0] !== "arquivo" &&
-              filter[0] !== "cliente" &&
-              filter[0] !== "cor" &&
-              filter[0] !== "prioridadeId" &&
-              filter[0] !== "tipoId" &&
-              filter[0] !== "validation" &&
-              filter[0] !== "fileBase64" &&
-              filter[1]
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toUpperCase()
-                .includes(
-                  search
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .toUpperCase()
-                )
-            ) {
-              list.push(item[1]);
-              hasRow = true;
-            }
-          } else {
-            const num = parseInt(search);
-            if (Object.values(filter).includes(num)) {
-              list.push(item[1]);
-              hasRow = true;
-            }
-          }
-          return true;
-        });
-        return true;
-      });
-
-      if (!hasRow) {
-        list.push({
-          id: "#",
-          tipo: "",
-          assunto: "Sem registros com essa pesquisa",
-          cor: "",
-          prioridade: "",
-          dataSolicitacao: "",
-        });
-      }
-      let listAux = list;
-      if (listAux.length > tamanhoPagina) {
-        list = [];
-        for (
-          var h = pagina * tamanhoPagina;
-          h < listAux.length && h < (pagina + 1) * tamanhoPagina;
-          h++
-        ) {
-          list.push(listAux[h]);
-        }
-        numPagina = Math.ceil(listAux.length / tamanhoPagina);
-      } else {
-        numPagina = Math.ceil(list.length / tamanhoPagina);
-      }
-      listAux = [];
-    }
-    return list.map((dados, key) => (
-      <tr key={key} id={dados.id + key}>
-        <td width="100">{dados.id}</td>
-        <td width="200">
-          <span style={{ color: dados.cor }}>
-            <i className="fa fa-ticket" aria-hidden="true"></i>
-          </span>{" "}
-          {dados.tipo}
-        </td>
-        <td width="400">{dados.assunto}</td>
-        <td width="150">{dados.prioridade}</td>
-        <td width="150">{dados.dataSolicitacao}</td>
-        <td
-          width="150"
-          style={dados.atendido ? { color: "#008000" } : { color: "#ffd700" }}
-        >
-          {dados.atendido ? (
-            <i className="fa fa-check" aria-hidden="true"></i>
-          ) : (
-            <i className="fa fa-minus" aria-hidden="true"></i>
-          )}
-        </td>
-        <td width="120">
-          <div className="pointer col-md-8 col-sm-8">
-            <button
-              value={dados.id}
-              className="fa fa-list-alt styleButton"
-              onClick={showModal}
-            ></button>
-          </div>
-        </td>
-      </tr>
-    ));
+    return data.Obj.map(
+      (dados, key) => (
+        // eslint-disable-next-line no-sequences
+        (numPagina = dados.totalRecord / 6),
+        (
+          <tr key={key} id={dados.id + key}>
+            <td width="100">{dados.id}</td>
+            <td width="200">
+              <span style={{ color: dados.cor }}>
+                <i className="fa fa-ticket" aria-hidden="true"></i>
+              </span>{" "}
+              {dados.tipo}
+            </td>
+            <td width="400">{dados.assunto}</td>
+            <td width="150">{dados.prioridade}</td>
+            <td width="150">{dados.dataSolicitacao}</td>
+            <td
+              width="150"
+              style={
+                dados.atendido ? { color: "#008000" } : { color: "#ffd700" }
+              }
+            >
+              {dados.atendido ? (
+                <i className="fa fa-check" aria-hidden="true"></i>
+              ) : (
+                <i className="fa fa-minus" aria-hidden="true"></i>
+              )}
+            </td>
+            <td width="120">
+              <div className="pointer col-md-8 col-sm-8">
+                <button
+                  value={dados.id}
+                  className="fa fa-list-alt styleButton"
+                  onClick={showModal}
+                ></button>
+              </div>
+            </td>
+          </tr>
+        )
+      )
+    );
   };
 
   async function retunrTicket(TicketId) {
-    let pp = [];
+    let lst = [];
     const data = {
       Id: id,
       search: TicketId,
     };
     await axios.post(URL, data).then((resp) => {
-      pp = resp.data;
-      pp.map(function(filter) {
+      lst = resp.data;
+      lst.map(function(filter) {
         if (filter.id.toString() === TicketId.toString()) {
           setModal({
             ...Modal,
@@ -231,35 +165,52 @@ export default (props) => {
             description: filter.descricao,
           });
         }
-        return pp;
+        return lst;
       });
     });
-    setModalShow({...stateModal, modalShow: !stateModal.modalShow});
-  }
-
-  function changeTable(stateSeach) {
-    search = stateSeach;
+    setModalShow({ ...stateModal, modalShow: !stateModal.modalShow });
   }
 
   function searchChange(e) {
     setState({ ...state, search: e.target.value });
   }
 
-  function btnSearch() {
+  //Pesquisa
+  const btnSearch = async () => {
+    await listData();
     setState({ ...state, subject: !state.subject });
-    changeTable(state.search);
-  }
+  };
 
-  function btnClear() {
-    setState({ ...state, subject: !state.subject, search: "" });
+  const listData = async (filter) => {
+    const pesq = filter === "0" ? "" : state.search;
+
+    const data = {
+      Search: pesq,
+      Page: 0,
+      PersonId: id,
+    };
+    const lst = await lstFilter(data);
+    dataState({ Obj: lst });
+  };
+
+  const btnClear = async () => {
     pagina = 0;
-    changeTable("");
-  }
+    await listData("0");
+  };
 
-  function nextChange(e) {
+  const nextChange = async () => {
+    const page = buttonNext();
+    const data = {
+      Search: "",
+      Page: page + 1,
+      PersonId: id,
+    };
+    console.log(data);
+    const lst = await lstFilter(data);
+
+    dataState({ Obj: lst });
     setState({ ...state, subject: !state.subject });
-    buttonNext();
-  }
+  };
 
   function backChange(e) {
     setState({ ...state, subject: !state.subject });
@@ -273,16 +224,16 @@ export default (props) => {
 
   return token ? (
     <>
-    <ModalShow
-          modalShow={stateModal.modalShow}
-          closeModal={showNewModal}
-          subject={Modal.assunto.toLocaleUpperCase()}
-          cor={Modal.color}
-          tipo={Modal.tipo}
-          priority={Modal.prioridade}
-          desc={Modal.description}
-        ></ModalShow>
-      <div className="container">        
+      <ModalShow
+        modalShow={stateModal.modalShow}
+        closeModal={showNewModal}
+        subject={Modal.assunto.toLocaleUpperCase()}
+        cor={Modal.color}
+        tipo={Modal.tipo}
+        priority={Modal.prioridade}
+        desc={Modal.description}
+      ></ModalShow>
+      <div className="container">
         <Helmet>
           <title>Meus Tickets</title>
         </Helmet>
@@ -325,13 +276,21 @@ export default (props) => {
             </table>
           </div>
           <div style={{ textAlign: "right" }}>
-            <button onClick={backChange} className="btn btn-light styleButton">
+            <button
+              onClick={backChange}
+              id="btnBack"
+              className="btn btn-light styleButton"
+            >
               Anterior
             </button>
             <span className="page">
               {pagina + 1} de {numPagina}{" "}
             </span>
-            <button onClick={nextChange} className="btn btn-light styleButton">
+            <button
+              onClick={nextChange}
+              id="btnNext"
+              className="btn btn-light styleButton"
+            >
               Próximo
             </button>
           </div>

@@ -1,4 +1,3 @@
-import { useHistory } from "react-router-dom";
 import "../assets/css/custom.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Img from "./images";
@@ -14,7 +13,6 @@ const Menu = React.memo((props) => {
   const { setId } = useContext(StoreContext);
   const { isManager } = useContext(StoreContext);
   const { id } = useContext(StoreContext);
-  const history = useHistory();
 
   const handleOnIdle = (event) => {
     alert("Você foi desconectado");
@@ -27,12 +25,10 @@ const Menu = React.memo((props) => {
     debounce: 500,
   });
 
-  function handleClick(e) {
-    e.preventDefault();
+  function handleClick() {
     setToken("token", "");
     setName("name", "");
     setId("id", 0);
-    history.replace();
     return <Redirect to="/login" />;
   }
 
@@ -100,13 +96,13 @@ const Menu = React.memo((props) => {
                 </Link>
               </li>
               <li>
-                <a href="/login" onClick={handleClick}>
+                <Link to={'#'}  style={{cursor:"pointer"}} onClick={handleClick}>
                   Sair{" "}
                   <i
                     className="fa fa-arrow-circle-o-right"
                     aria-hidden="true"
                   ></i>
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
