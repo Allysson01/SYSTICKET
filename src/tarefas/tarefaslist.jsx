@@ -64,6 +64,7 @@ function propsModal() {
 
 export default (props) => {
   const { token } = useContext(StoreContext);
+
   const { id } = useContext(StoreContext);
 
   const [state, setState] = useState(initialState);
@@ -82,11 +83,15 @@ export default (props) => {
   if (state.subject === null) {
     pagina = 0;
   }
+  console.log('oi');
 
   useEffect(() => {
     async function refresh() {
-      axios
-        .post(URL, { PersonId: id, Page: pagina, Search: "" })
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+     await axios
+        .post(URL, { PersonId: id, Page: pagina, Search: "" }, config)
         .then((resp) => {
           dataState({ Obj: resp.data });
         })
@@ -97,7 +102,9 @@ export default (props) => {
         });
     }
     refresh();
-  }, [id]);
+    // Desabilita a necessidade de colocar Token e Id dentro do Array a baixo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
 
   const renderRows = () => {
     return data.Obj.map(

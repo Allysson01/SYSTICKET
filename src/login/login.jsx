@@ -10,7 +10,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import "../assets/css/custom.css";
 
-const URL = "http://localhost:8082/api/authen/login";
+const URL = "https://localhost:44318/api/authen/login";
 
 function initialState() {
   return { email: "", password: "" };
@@ -47,9 +47,8 @@ export default () => {
     const params = { email, password };
 
     await axios
-      .post(URL, params, { withCredentials: true })
+      .post(URL, params)
       .then((resp) => {
-        console.log(resp);
         data = resp.data;
       })
       .catch(function(err) {
@@ -61,12 +60,12 @@ export default () => {
         }
       });
 
-    if (data.validation !== false) {
+    if (data.token) {
       return {
-        token: data.key,
-        nome: data.name,
-        id: data.id,
-        isManager: data.isManager,
+        token: data.token,
+        nome: data.user.name,
+        id: data.user.id,
+        isManager: true,
       };
     }
     toast.error("Erro ao logar! Verifique Usuário e Senha.");
@@ -76,12 +75,13 @@ export default () => {
 
   async function onSubmitt(e) {
     e.preventDefault();
-    const { token, nome, id, isManager } = await loginOn(state);
-    if (token) {
-      setId("id", parseInt(id));
-      setToken("token", token);
-      setName("name", nome);
-      setManager("isManager", isManager);
+    const resp = await loginOn(state);
+
+    if (resp.token) {
+      setId("id", parseInt(resp.id));
+      setToken("token", resp.token);
+      setName("name", resp.nome);
+      setManager("isManager", resp.isManager);
       return history.replace("/todos");
     }
     setError(error);
